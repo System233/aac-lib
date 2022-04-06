@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.12)
+project(aac-lib)
+add_subdirectory(libs/fdk-aac)
+add_library(aac-lib src/aac-lib.cpp)
+target_include_directories(aac-lib PUBLIC include)
+target_link_libraries(aac-lib fdk-aac)
