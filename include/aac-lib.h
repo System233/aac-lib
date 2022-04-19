@@ -2,6 +2,10 @@
 // 
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
+#ifndef AAC_LIB_H
+
+#define AAC_LIB_H
+
 
 #include <cstdint>
 #include <memory>
@@ -69,3 +73,5 @@ public:
 
 std::unique_ptr<ICodec> createAACEncoder(CodecOption const&option);
 std::unique_ptr<ICodec> createAACDecoder(TransportType transportType);
+
+#endif //AAC_LIB_H
