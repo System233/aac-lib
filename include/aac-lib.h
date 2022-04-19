@@ -72,6 +72,6 @@ public:
 
 
 std::unique_ptr<ICodec> createAACEncoder(CodecOption const&option);
-std::unique_ptr<ICodec> createAACDecoder(TransportType transportType);
+std::unique_ptr<ICodec> createAACDecoder(CodecOption const&option);
 
 #endif //AAC_LIB_H

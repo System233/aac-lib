@@ -175,11 +175,59 @@ class AACDecoder:public ICodec{
         throw std::runtime_error(ss.str());
     }
 }
+    static uint64_t make_asc2(int aot,int freq,int channels){
+        
+        uint64_t result=0;
+        char*p=(char*)&result;
+        char index=0;
+        if(aot>=31){
+            index+=5;
+            for(auto i=0;i<5;++i){
+                p[(index-i)/8]|=1<<((8-(index-i)%8));
+            }
+            index+=6;
+            int val=(aot-32)&0x3F;
+            for(auto i=0;i<6;++i){
+                p[(index-i)/8]|=(!!(val&(1<<i)))<<(8-((index-i)%8));
+            }
+        }else{
+            index+=5;
+            for(auto i=0;i<5;++i){
+                p[(index-i)/8]|=(!!(aot&(1<<i)))<<(8-((index-i)%8));
+            }
+        }
+        if(freq>=15){
+            index+=4;
+            for(auto i=0;i<4;++i){
+                p[(index-i)/8]|=1<<((8-(index-i)%8));
+            }
+            index+=24;
+            int val=freq&0xFFFFFF;
+            for(auto i=0;i<24;++i){
+                p[(index-i)/8]|=(!!(val&(1<<i)))<<(8-((index-i)%8));
+            }
+        }else{
+            index+=4;
+            for(auto i=0;i<4;++i){
+                p[(index-i)/8]|=(!!(freq&(1<<i)))<<(8-((index-i)%8));
+            }
+        }
+        index+=4;
+        for(auto i=0;i<4;++i){
+                p[(index-i)/8]|=(!!(channels&(1<<i)))<<(8-((index-i)%8));
+        }
+        return result;
+    };
 public:
-    AACDecoder(TransportType transportType):mDecoder(NULL){
-        TRANSPORT_TYPE aot=GetTransportType(transportType);
-        mDecoder=aacDecoder_Open(aot,2);
-        mOption.transportType=transportType;
+    AACDecoder(CodecOption const&option):mDecoder(NULL),mOption(option){
+        TRANSPORT_TYPE tt=GetTransportType(option.transportType);
+        mDecoder=aacDecoder_Open(tt,2);
+        auto asc=make_asc2(GetAudioObjectType(option.audioObjectType),option.sampleRate,option.channels);
+        UCHAR*conf=(UCHAR*)&asc;
+        UINT len=sizeof(asc);
+        auto err=aacDecoder_ConfigRaw(mDecoder,&conf,&len);
+        CHECK_ERROR(err,"aacDecoder_ConfigRaw");
+
     }
     ~AACDecoder(){
         aacDecoder_Close(mDecoder);
