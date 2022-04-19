@@ -266,6 +266,6 @@ public:
 std::unique_ptr<ICodec> createAACEncoder(CodecOption const&option){
     return std::make_unique<AACEncoder>(option);
 }
-std::unique_ptr<ICodec> createAACDecoder(TransportType transportType){
-    return std::make_unique<AACDecoder>(transportType);
+std::unique_ptr<ICodec> createAACDecoder(CodecOption const&option){
+    return std::make_unique<AACDecoder>(option);
 }
