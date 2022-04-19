@@ -32,6 +32,7 @@ enum class AudioObjectType{
     AAC_ELD
 };
 enum class SampleRate:int{
+    R7350=7350,
     R8000=8000, 
     R11025=11025,
     R12000=12000,
