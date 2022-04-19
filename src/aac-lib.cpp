@@ -8,6 +8,7 @@
 #include <aacenc_lib.h>
 #include <aacdecoder_lib.h>
 #include <sstream>
+#include <vector>
 
 struct AACEncoderOption
 {
@@ -155,8 +156,8 @@ class AACEncoder : public ICodec
 {
     HANDLE_AACENCODER mEncoder;
     CodecOption mOption;
-    void const *pData = nullptr;
-    size_t mLen = 0;
+    std::vector<char> mBuffer;
+    size_t mBufferSize = 0;
     static void CHECK_ERROR(AACENC_ERROR error, char const *name)
     {
         if (error != AACENC_OK)
@@ -197,6 +198,11 @@ public:
         CHECK_ERROR(err, "aacEncoder_SetParam::AACENC_AFTERBURNER");
         err = aacEncEncode(mEncoder, NULL, NULL, NULL, NULL);
         CHECK_ERROR(err, "aacEncEncode::init");
+        
+        AACENC_InfoStruct info{0};
+        err = aacEncInfo(mEncoder,&info);
+        CHECK_ERROR(err, "aacEncInfo");
+        mBuffer.resize(info.frameLength*sizeof(short)*info.inputChannels);
     }
     virtual ~AACEncoder() override
     {
@@ -209,18 +215,25 @@ public:
     };
     size_t write(void const *data, size_t len) override
     {
-        pData = data;
-        mLen = len;
-        return len;
+        auto it=static_cast<char const*>(data);
+        auto capacity=mBuffer.size()-mBufferSize;
+        auto copy=std::min(capacity,len);
+        std::copy(it,it+copy,mBuffer.data()+mBufferSize);
+        mBufferSize+=copy;
+        return copy;
     }
     size_t read(void *data, size_t len) override
     {
+        if(mBuffer.size()!=mBufferSize){
+            return 0;
+        }
         AACENC_BufDesc in_buf = {0}, out_buf = {0};
         AACENC_InArgs in_args = {0};
         AACENC_OutArgs out_args = {0};
         int in_buf_el_size = mOption.sampleBits / 8;
-        int in_buf_size = mLen;
+        int in_buf_size = mBufferSize;
         int in_buf_dentifier = IN_AUDIO_DATA;
+        void*pData=mBuffer.data();
         in_buf.numBufs = 1;
         in_buf.bufSizes = &in_buf_size;
         in_buf.bufElSizes = &in_buf_el_size;
@@ -244,6 +257,7 @@ public:
         {
             return 0;
         }
+        mBufferSize=0;
         CHECK_ERROR(err, "aacEncEncode");
         return out_args.numOutBytes;
     }
