@@ -196,6 +196,8 @@ public:
         }
         err = aacEncoder_SetParam(mEncoder, AACENC_PARAM::AACENC_AFTERBURNER, 1);
         CHECK_ERROR(err, "aacEncoder_SetParam::AACENC_AFTERBURNER");
+        err = aacEncoder_SetParam(mEncoder, AACENC_PARAM::AACENC_GRANULE_LENGTH, 128);
+        CHECK_ERROR(err, "aacEncoder_SetParam::AACENC_GRANULE_LENGTH");
         err = aacEncEncode(mEncoder, NULL, NULL, NULL, NULL);
         CHECK_ERROR(err, "aacEncEncode::init");
         
@@ -339,14 +341,25 @@ public:
     {
         TRANSPORT_TYPE tt = GetTransportType(option.transportType);
         mDecoder = aacDecoder_Open(tt, 2);
-        auto asc = make_asc2(
-            GetAudioObjectType(option.audioObjectType),
-            GetSampleRateIndex(option.sampleRate),
-            GetChannelMode(option.channels));
-        UCHAR *conf = (UCHAR *)&asc;
-        UINT len = sizeof(asc);
-        auto err = aacDecoder_ConfigRaw(mDecoder, &conf, &len);
-        CHECK_ERROR(err, "aacDecoder_ConfigRaw");
+        switch (tt) {
+            case TRANSPORT_TYPE::TT_MP4_LATM_MCP0:
+            case TRANSPORT_TYPE::TT_MP4_LATM_MCP1:
+            case TRANSPORT_TYPE::TT_MP4_LOAS:
+            {
+
+            }break;
+            default:
+            {
+                auto asc = make_asc2(
+                        GetAudioObjectType(option.audioObjectType),
+                        GetSampleRateIndex(option.sampleRate),
+                        GetChannelMode(option.channels));
+                UCHAR *conf = (UCHAR *)&asc;
+                UINT len = sizeof(asc);
+                auto err = aacDecoder_ConfigRaw(mDecoder, &conf, &len);
+                CHECK_ERROR(err, "aacDecoder_ConfigRaw");
+            }
+        }
     }
     ~AACDecoder()
     {
