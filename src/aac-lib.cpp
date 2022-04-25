@@ -196,8 +196,10 @@ public:
         }
         err = aacEncoder_SetParam(mEncoder, AACENC_PARAM::AACENC_AFTERBURNER, 1);
         CHECK_ERROR(err, "aacEncoder_SetParam::AACENC_AFTERBURNER");
-        err = aacEncoder_SetParam(mEncoder, AACENC_PARAM::AACENC_GRANULE_LENGTH, 128);
-        CHECK_ERROR(err, "aacEncoder_SetParam::AACENC_GRANULE_LENGTH");
+        if(mOption.granule){
+            err = aacEncoder_SetParam(mEncoder, AACENC_PARAM::AACENC_GRANULE_LENGTH, mOption.granule);
+            CHECK_ERROR(err, "aacEncoder_SetParam::AACENC_GRANULE_LENGTH");
+        }
         err = aacEncEncode(mEncoder, NULL, NULL, NULL, NULL);
         CHECK_ERROR(err, "aacEncEncode::init");
         

@@ -61,6 +61,7 @@ struct CodecOption{
     ChannelOrder channelOrder=ChannelOrder::UNKNOWN;
     TransportType transportType=TransportType::UNKNOWN;
     int bitrate=0;
+    int granule=0;
 
 };
 class ICodec{
